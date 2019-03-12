@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using WebSocketCommon.Services.Commands;
 using WebSocketCommon.Services.Data;
 using WebSocketCommon.Services.Socket;
+using WebSocketServer.Model;
 
 namespace WebSocketServer
 {
@@ -39,14 +40,17 @@ namespace WebSocketServer
             app.UseWebSockets(webSocketOptions)
                 .Use(async (context, next) =>
                 {
+                    var socketService = app.ApplicationServices.GetRequiredService<ISocketService>();
+                    var commandService = app.ApplicationServices.GetRequiredService<ICommandService>();
+
                     if (context.Request.Path == "/ws")
                     {
                         if (context.WebSockets.IsWebSocketRequest)
                         {
                             System.Net.WebSockets.WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                            var command = await app.ApplicationServices.GetRequiredService<ISocketService>().RecieveCommandAsync(context, webSocket, new CancellationToken());
-                            var commandResponse = await app.ApplicationServices.GetRequiredService<ICommandService>().InvokeCommandAsync(command);
-                            await app.ApplicationServices.GetRequiredService<ISocketService>().SendCommandAsync(commandResponse, webSocket, new CancellationToken());
+                            var command = await socketService.RecieveItemAsync<Command>(webSocket, new CancellationToken());
+                            var commandResponse = await commandService.InvokeCommandAsync(command);
+                            await socketService.SendItemAsync<CommandResponse>(commandResponse, webSocket, new CancellationToken());
                         }
                         else
                         {

@@ -20,7 +20,7 @@ namespace WebSocketCommon.Services.Socket
             _Logger = serviceProvider.GetService<ILoggerFactory>().CreateLogger<SocketService>();
         }
 
-        public async Task<string> RecieveMessageAsync(HttpContext context, System.Net.WebSockets.WebSocket socket, CancellationToken token)
+        public async Task<string> RecieveMessageAsync(System.Net.WebSockets.WebSocket socket, CancellationToken token)
         {
             var buffer = new byte[1024 * 4];
             using (_Logger.BeginScope($"Recieving message from socket with state {socket.State}", socket))
@@ -40,17 +40,17 @@ namespace WebSocketCommon.Services.Socket
             return true;
         }
 
-        public async Task<Command> RecieveCommandAsync(HttpContext context, System.Net.WebSockets.WebSocket socket, CancellationToken token)
+        public async Task<T> RecieveItemAsync<T>(System.Net.WebSockets.WebSocket socket, CancellationToken token)
         {
             var buffer = new byte[1024 * 4];
             using (_Logger.BeginScope($"Recieving message from socket with state {socket.State}", socket))
             {
                 WebSocketReceiveResult result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
             }
-            return JsonConvert.DeserializeObject<Command>(Encoding.UTF8.GetString(buffer));
+            return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(buffer));
         }
 
-        public async Task<bool> SendCommandAsync(Command command, System.Net.WebSockets.WebSocket socket, CancellationToken token)
+        public async Task<bool> SendItemAsync<T>(T command, System.Net.WebSockets.WebSocket socket, CancellationToken token)
         {
             var buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(command));
             using (_Logger.BeginScope($"Sending message from socket with state {socket.State}", socket))

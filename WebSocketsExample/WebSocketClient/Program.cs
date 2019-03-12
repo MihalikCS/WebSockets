@@ -57,8 +57,8 @@ namespace WebSocketClient
                 CommandType = "GetNames"
             };
 
-            await _SocketService.SendCommandAsync(cmd, cws, new CancellationToken());
-            var cmdResponse = await _SocketService.RecieveCommandAsync(null, cws, new CancellationToken());
+            await _SocketService.SendItemAsync<Command>(cmd, cws, new CancellationToken());
+            var cmdResponse = await _SocketService.RecieveItemAsync<CommandResponse>(cws, new CancellationToken());
         }
     }
 }
