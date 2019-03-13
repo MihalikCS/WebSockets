@@ -34,7 +34,7 @@ namespace WebSocketServer
         public void Configure(IApplicationBuilder app)
         {
             // Web Sockets Mapping
-            app.Map("", ws =>
+            app.Map("/ws", ws =>
             {
                 var webSocketOptions = new WebSocketOptions()
                 {
