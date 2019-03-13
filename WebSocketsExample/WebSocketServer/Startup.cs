@@ -26,42 +26,46 @@ namespace WebSocketServer
                     {
                         options.AddConsole();
                         options.SetMinimumLevel(LogLevel.Debug);
-                    });
+                    })
+                    .AddMvc();
         }
 
         // Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app)
         {
-            var webSocketOptions = new WebSocketOptions()
+            // Web Sockets Mapping
+            app.Map("", ws =>
             {
-                KeepAliveInterval = TimeSpan.FromSeconds(120),
-                ReceiveBufferSize = 4 * 1024
-            };
-            app.UseWebSockets(webSocketOptions)
+                var webSocketOptions = new WebSocketOptions()
+                {
+                    KeepAliveInterval = TimeSpan.FromSeconds(120),
+                    ReceiveBufferSize = 4 * 1024
+                };
+                ws.UseWebSockets(webSocketOptions)
                 .Use(async (context, next) =>
                 {
                     var socketService = app.ApplicationServices.GetRequiredService<ISocketService>();
                     var commandService = app.ApplicationServices.GetRequiredService<ICommandService>();
 
-                    if (context.Request.Path == "/ws")
+                    if (context.WebSockets.IsWebSocketRequest)
                     {
-                        if (context.WebSockets.IsWebSocketRequest)
-                        {
-                            System.Net.WebSockets.WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                            var command = await socketService.RecieveItemAsync<Command>(webSocket, new CancellationToken());
-                            var commandResponse = await commandService.InvokeCommandAsync(command);
-                            await socketService.SendItemAsync<CommandResponse>(commandResponse, webSocket, new CancellationToken());
-                        }
-                        else
-                        {
-                            context.Response.StatusCode = 400;
-                        }
+                        System.Net.WebSockets.WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                        var command = await socketService.RecieveItemAsync<Command>(webSocket, new CancellationToken());
+                        var commandResponse = await commandService.InvokeCommandAsync(command);
+                        await socketService.SendItemAsync<CommandResponse>(commandResponse, webSocket, new CancellationToken());
                     }
                     else
                     {
-                        await next();
+                        context.Response.StatusCode = 400;
                     }
                 });
+            });
+
+            // Rest Service Mapping
+            app.Map("/api", rs =>
+            {
+                rs.UseMvc();
+            });
         }
     }
 }
