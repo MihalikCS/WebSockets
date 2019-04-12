@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using WebSocketCommon.Interfaces;
 using WebSocketCommon.Services.Data;
 using WebSocketServer.Model;
 
 namespace WebSocketCommon.Services.Commands
 {
-    public class CommandService : ICommandService
+    public class CommandService : ICommandService,
+        ICommandHandler<GetNamesCommand>
     {
         ILogger _Logger { get; set; }
         IDataService _DataService { get; set; }
@@ -32,6 +35,11 @@ namespace WebSocketCommon.Services.Commands
                 cmdResponse.Data = values.Select(a => string.Join(" ", a.Skip(1))).ToArray();
             }
             return cmdResponse;
+        }
+
+        public void Execute(GetNamesCommand cmd)
+        {
+            throw new NotImplementedException();
         }
     }
 }

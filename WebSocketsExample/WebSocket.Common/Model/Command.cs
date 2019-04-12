@@ -16,10 +16,16 @@ namespace WebSocketServer.Model
     }
 
     [DataContract]
-    public sealed class CommandResponse : Command
+    public sealed class CommandResponse
     {
+        [DataMember]
+        public int CommandId { get; set; }
+
         [DataMember]
         public string[] Data { get; set; }
     }
+
+    //
+    public class GetNamesCommand : Command { }; 
 
 }
